@@ -1,4 +1,4 @@
-<p align="center"><img src="https://mum-project.github.io/docs/img/mum.svg" height="48"></p>
+<p align="center"><img src="https://mum-project.github.io/docs/img/mum.svg" height="64"></p>
 
 # MUM Migrator
 
