@@ -1,0 +1,52 @@
+{
+    "name": "MUM Migrator",
+    "description": "Migration Tool for MUM to use with ViMbAdmin",
+    "keywords": ["MUM", "email", "migration", "vimbadmin"],
+    "homepage": "https://github.com/mum-project/migrator",
+    "type": "project",
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/mum-project/migrator/issues",
+        "source": "https://github.com/mum-project/migrator"
+    },
+    "authors": [
+        {
+            "name": "Martin Bock",
+            "email": "mail@mnbo.de"
+        }
+    ],
+    "require": {
+        "php": "^7.1.3",
+        "illuminate/database": "5.6.*",
+        "illuminate/log": "5.6.*",
+        "laravel-zero/framework": "5.6.*",
+        "vlucas/phpdotenv": "^2.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        },
+        "files": [
+            "app/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "optimize-autoloader": true,
+        "platform": {
+            "ext-posix": "0"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "bin": ["migrator"]
+}
