@@ -1,4 +1,4 @@
-<p align="center"><img src="https://mum-project.github.io/docs/img/mum.svg" height="128"></p>
+<p align="center"><img src="https://mum-project.github.io/img/mum.svg" height="128"></p>
 
 # MUM Migrator
 
@@ -44,4 +44,4 @@ You want to help? Awesome! Have a look at the [Contribution Guide](CONTRIBUTING.
 The [MIT license](https://opensource.org/licenses/MIT). 
 Please see the [license file](LICENSE.md) for more information.
 
-Copyright &copy; 2018 Martin Bock.
+Copyright &copy; 2018-2020 Martin Bock.
