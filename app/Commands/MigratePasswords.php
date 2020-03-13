@@ -3,16 +3,14 @@
 namespace App\Commands;
 
 use App\Models\Mum\Mailbox;
-use App\Models\PasswordHash\PasswordHashInput;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use function app;
-use App\Migrators\VimbAdmin\AliasMigrator;
-use App\Migrators\VimbAdmin\DomainMigrator;
-use App\Migrators\VimbAdmin\MailboxMigrator;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 use LaravelZero\Framework\Commands\Command;
+use function array_push;
 use function fgetcsv;
 use function fopen;
+use function preg_replace;
 
 class MigratePasswords extends Command
 {
@@ -46,7 +44,7 @@ class MigratePasswords extends Command
 
         $hashes = $this->readHashes();
 
-        $this->table(['Username', 'Domain', 'Hash'], $hashes->toArray());
+        $this->table(['Mailbox', 'Hash'], $hashes);
 
         $confirmed =
             $this->confirm('Do you want to write these hashes to your database, thus overwriting the existing ones?');
@@ -55,33 +53,51 @@ class MigratePasswords extends Command
             return;
         }
 
-        $this->task('Migrating Passwords', function () use ($hashes) {
-            DB::connection('mysql_mum')->beginTransaction();
-            $hashes->each(function (array $row) {
-                /** @var Mailbox $mailbox */
-                $mailbox = Mailbox::whereAddress($row[0] . '@' . $row[1])->firstOrFail();
-                $mailbox->password = $row[2];
-                $mailbox->saveOrFail();
-            });
-            DB::connection('mysql_mum')->commit();
+        $output = $this->task('Migrating Passwords', function () use ($hashes) {
+            try {
+                DB::connection('mysql_mum')->beginTransaction();
+                foreach ($hashes as $row) {
+                    /** @var Mailbox $mailbox */
+                    $mailbox = Mailbox::whereAddress($row['mailbox'])->firstOrFail();
+                    $mailbox->password = $row['hash'];
+                    $mailbox->saveOrFail();
+                    Log::debug('Overwritten password hash for ' . $row['mailbox']);
+                }
+                DB::connection('mysql_mum')->commit();
+            } catch (Throwable $exception) {
+                DB::connection('mysql_mum')->rollBack();
+                Log::error('Failed to migrate passwords: ' . $exception);
+                return 1;
+            }
         });
+
+        if (!$output) {
+            $this->comment('Have a look in the log file for more details.');
+        }
     }
 
     /**
      * Read the supplied CSV file with password hashes.
      * We assume it has the following layout and is separated by double quotes.
-     * | username | domain | hash    |
-     * | -------- | ------ | ------- |
-     * | joe      | doe.co | $2y$... |
      *
-     * @return Collection
+     *      | mailbox        | hash               |
+     *      | -------------- | ------------------ |
+     *      | jon @ doe.com  | $2y$...            |
+     *      | jane @ doe.com | {BLF-CRYPT}$2y$... |
+     *
+     * If your hash has a prefix appended by Dovecot's `doveadm`,
+     * this method will remove it for you.
+     *
+     * @return array
      */
-    private function readHashes(): Collection
+    private function readHashes(): array
     {
         $file = fopen($this->option('csv-file'), 'r');
-        $hashes = Collection::make();
+        $hashes = [];
         while ($row = fgetcsv($file, 1000, ',')) {
-            $hashes->add([$row[0], $row[1], $row[2]]);
+            $mailbox = $row[0];
+            $hash = preg_replace('/({\S+})?(\$\S{1,2}\$.+$)/', '$2', $row[1]);
+            array_push($hashes, ['mailbox' => $mailbox, 'hash' => $hash]);
         }
         return $hashes;
     }
