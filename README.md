@@ -10,13 +10,14 @@ MUM Migrator currently only supports migrating data from ViMbAdmin.
 
 ## Installation
 
-Simply clone this repository and configure the necessary database options.
+Firstly, clone this repository and configure the necessary database options. Secondly, install the dependencies with `composer`.
 
 ```bash
 git clone https://github.com/mum-project/migrator.git
 cd migrator/
 cp .env.example .env
 nano .env
+composer install --optimize-autoloader --no-dev
 ```
 
 ## Migrating from ViMbAdmin
